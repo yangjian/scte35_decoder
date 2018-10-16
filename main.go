@@ -1,61 +1,68 @@
 package main
 
 import (
-	"encoding/hex"
+	"encoding/base64"
 	"fmt"
+	"log"
+	"os"
 
 	SCTE35_2013 "github.com/chanyk-joseph/scte35_decoder/2013"
 	SCTE35_2017 "github.com/chanyk-joseph/scte35_decoder/2017"
 )
 
-func check(err error) {
+func parseSCTE2013(data []byte) error {
+	var o SCTE35_2013.SCTE35
+	n, err := o.DecodeFromRawBytes(data)
 	if err != nil {
-		fmt.Println(err)
+		return err
 	}
+
+	fmt.Println("Schema Version: ", o.SchemaVersion())
+	fmt.Println("Parsed Bits: ", n)
+	fmt.Println("Table ID: ", o.TableID)
+	fmt.Println("splice_command_type: ", o.SpliceCommandType)
+	fmt.Println("CRC32 In Hex: ", o.CRC32InHex)
+	fmt.Println("\nEntire SCTE35 Structure: \n", o.JSON("	"))
+	return nil
+}
+
+func parseSCTE2017(data []byte) error {
+	var o SCTE35_2017.SCTE35
+	n, err := o.DecodeFromRawBytes(data)
+	if err != nil {
+		return err
+	}
+
+	fmt.Println("Schema Version: ", o.SchemaVersion())
+	fmt.Println("Parsed Bits: ", n)
+	fmt.Println("Table ID: ", o.TableID)
+	fmt.Println("splice_command_type: ", o.SpliceCommandType)
+	fmt.Println("CRC32 In Hex: ", o.CRC32InHex)
+	fmt.Println("\nEntire SCTE35 Structure: \n", o.JSON("	"))
+	return nil
 }
 
 func main() {
-	// data, err := hex.DecodeString("FC304B00000000000000FFF00506FF8B90196B00350229435545490000000A7FDE00005265C001154E6174696F6E616C5F4261636B4F75745F47727032300000F0085053394B546524A78EB611D2") //time_signal
-	data, err := hex.DecodeString("FC00490000000000000000000F0500000002004081E56EC735000000000029021543554549000000027FCF00002932E0080132340000021043554549000000017F9F0801313500007F0D0304") //splice_insert
-	// data, err := hex.DecodeString("fc302500000000000000fff01405000000017feffe2d142b00fe0123d3080001010100007f157a49")
-	// data, err := hex.DecodeString("fc304700000000000000fff00506fe1909d1f9002f0223435545490000000a7f9f01144e6174696f6e616c5f4261636b4f75745f456e64310000f0085053394b546524dd8c7fef2b10a4")
-	check(err)
+	if len(os.Args) != 2 {
+		fmt.Fprintf(os.Stderr, "Usage: scte35_decoder BASE64_ENCODED_DATA\n")
+		os.Exit(1)
+	}
 
-	obj := &SCTE35_2013.SCTE35{}
-	_, err = obj.DecodeFromRawBytes(data)
-	check(err)
+	data, err := base64.StdEncoding.DecodeString(os.Args[1])
+	if err != nil {
+		log.Fatal("invalid base64 string: " + err.Error())
+	}
 
-	fmt.Println("Schema Version: ", obj.SchemaVersion())
-	fmt.Println("Table ID: ", obj.TableID)
-	fmt.Println("splice_command_type: ", obj.SpliceCommandType)
-	fmt.Println("CRC32 In Hex: ", obj.CRC32InHex)
-	fmt.Println("Entire SCTE35 Structure: \n", obj.JSON("	"))
+	if err := parseSCTE2017(data); err == nil {
+		os.Exit(0)
+	} else {
+		log.Print("could not parse as SCTE35 2017: ", err)
+	}
 
-	fmt.Println("===============================================================================")
-
-	jsonStr := obj.JSON()
-	obj2 := &SCTE35_2013.SCTE35{}
-	err = obj2.DecodeFromJSON(jsonStr)
-	check(err)
-	fmt.Println("Schema Version: ", obj2.SchemaVersion())
-	fmt.Println("Table ID: ", obj2.TableID)
-	fmt.Println("splice_command_type: ", obj2.SpliceCommandType)
-	fmt.Println("CRC32 In Hex: ", obj2.CRC32InHex)
-	fmt.Println("Entire SCTE35 Structure: \n", obj2.JSON("	"))
-
-	_ = &SCTE35_2017.SCTE35{}
-
-	// parsers := [...]common.Parser{&SCTE35_2017.SCTE35{}, &SCTE35_2013.SCTE35{}}
-	// for i := 0; i < len(parsers); i++ {
-	// 	parser := parsers[i]
-
-	// 	parsedBits, err := parser.DecodeFromRawBytes(data)
-	// 	fmt.Println("SchemaVersion: ", parser.SchemaVersion())
-	// 	check(err)
-	// 	fmt.Println("parsedBits: ", parsedBits)
-	// 	if err == nil {
-	// 		fmt.Println(parser.JSON("	"))
-	// 	}
-	// 	fmt.Println("===============================")
-	// }
+	if err := parseSCTE2013(data); err == nil {
+		os.Exit(0)
+	} else {
+		log.Print("could not parse as SCTE35 2013: ", err)
+		os.Exit(1)
+	}
 }

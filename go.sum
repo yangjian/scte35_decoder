@@ -1,0 +1,4 @@
+github.com/chanyk-joseph/gobits v0.0.0-20171122032950-99f0e6923600 h1:LsF8rW4nS97JGxF03BdsVB4pBypInX2uQuL0WK8mPRs=
+github.com/chanyk-joseph/gobits v0.0.0-20171122032950-99f0e6923600/go.mod h1:4RPijl5qaQ6PfClFvXmP/yR8BgCIgwNH1Nw9UrcaFr0=
+github.com/chanyk-joseph/scte35_decoder v0.0.0-20171130065049-3727dc30a0a9 h1:pHzvfJau5J6vY4DrKKNNI8q1F651L4hf/tCtFqcpqTE=
+github.com/chanyk-joseph/scte35_decoder v0.0.0-20171130065049-3727dc30a0a9/go.mod h1:XP1RGEcO8IgZffkFeEPA7DTVw3/X/+4nk7cULCg0jGs=
